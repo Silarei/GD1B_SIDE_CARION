@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" /><title>Sidescroller</title>
+        <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+        <style type="text/css"> body { margin: 0; }</style>
+    </head>
+
+    <!-- Sincerement desole, je me suis organisee comme un nul dans les rendus, resultat j'ai code cela en zoom zoom et ai foiree tout mes rendus a la fois, si cela peut vous rassurer j'ai aussi rendu un travail bacle en narratologie et en info 2D -->
+
+    <body>
+        <script type="text/javascript">
+            var config = {
+            type: Phaser.AUTO,
+            width: 1920, height: 1080,
+            scene: {
+                preload: preload,
+                create: create,
+                update: update
+            }
+        };
+
+        var torpedos;
+        var submarine;
+        var speed;
+        var stats;
+        var cursors;
+        var lastFired = 0;
+        var lastBoost = 0;
+        var obstacle;
+        var nbBoost = 0;
+
+        var game = new Phaser.Game(config);
+
+        function preload () {
+            this.load.image('submarine', 'assets/subbass.png');
+            this.load.image('torpedo', 'assets/star.png');
+            this.load.image('hall', 'assets/hall.png');
+            this.load.image('obstacle', 'assets/platform.png');
+        }
+
+        function create () {
+            var Torpedo = new Phaser.Class({
+
+                Extends: Phaser.GameObjects.Image,
+
+                initialize:
+
+                function Torpedo (scene)
+                {
+                    Phaser.GameObjects.Image.call(this, scene, 0, 0, 'torpedo');
+
+                    this.speed = Phaser.Math.GetSpeed(400, 1);
+                },
+
+                fire: function (x, y)
+                {
+                    this.setPosition(x + 50, y);
+
+                    this.setActive(true);
+                    this.setVisible(true);
+                },
+
+                update: function (time, delta)
+                {
+                    this.x += this.speed * delta;
+
+                    if (this.x > 1920)
+                    {
+                        this.setActive(false);
+                        this.setVisible(false);
+                    }
+                }
+
+            });
+
+            torpedos = this.add.group({
+                classType: Torpedo,
+                maxsize: 20,
+                runChildUpdate: true
+            });
+
+            hall = this.add.sprite(2880,540, 'hall' );
+
+            //obstacle = this.add.sprite(1200,300, 'obstacle');
+
+            submarine = this.add.sprite(500, 500, 'submarine').setDepth(1);
+            submarine.setScale(0.05)
+
+            cursors = this.input.keyboard.createCursorKeys();
+
+            speed = Phaser.Math.GetSpeed(200, 1);
+        }
+
+        function update (time, delta) {
+            if (cursors.shift.isDown && time > lastBoost) {
+                submarine.x += speed * delta + 20;
+                nbBoost += 1;
+
+                if (nbBoost > 10) {
+                    lastBoost = time + 2000;
+                    nbBoost = 0;
+                }
+            }
+            if (cursors.up.isDown) {
+                submarine.y -= speed * delta;
+            }
+            if (cursors.down.isDown) {
+                submarine.y += speed * delta;
+            }
+            if (cursors.left.isDown) {
+                submarine.x -= speed * delta;
+            }
+            if (cursors.right.isDown) {
+                submarine.x += speed * delta;
+            }
+            
+
+            hall.x -= delta - 16,5;
+
+            if (cursors.space.isDown && time > lastFired) {
+                var torpedo = torpedos.get();
+
+                if (torpedo)
+                {
+                    torpedo.fire(submarine.x, submarine.y);
+
+                    lastFired = time + 500;
+                }
+            }
+        }
+        
+        </script>
+    </body>
+</html>
